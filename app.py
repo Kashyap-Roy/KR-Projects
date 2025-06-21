@@ -79,49 +79,73 @@ def handle_move(data):
         return
     player = rooms[room]['players'][request.sid]
     state = rooms[room]
+    
     # Update player velocity based on input
     player['vx'] = data.get('vx', 0)
     if data.get('jump') and player['on_ground']:
-        player['vy'] = -12
+        player['vy'] = -15  # Increased jump power
         player['on_ground'] = False
+    
+    # Better physics with air resistance
+    if not player['on_ground']:
+        player['vx'] *= 0.95  # Air resistance
+    
     # Simple physics
     player['x'] += player['vx']
-    player['vy'] += 0.7  # gravity
-    player['y'] += player['vy']
-    # Platform collision
+    player['vy'] += 0.8  # Slightly stronger gravity
+    
+    # Keep player in bounds
+    if player['x'] < 0:
+        player['x'] = 0
+        player['vx'] = 0
+    elif player['x'] > 760:  # 800 - 40 (player width)
+        player['x'] = 760
+        player['vx'] = 0
+    
+    # Platform collision with better detection
     player['on_ground'] = False
     for plat in state['platforms']:
-        if (player['x'] + 40 > plat['x'] and player['x'] < plat['x'] + plat['width'] and
-            player['y'] + 40 >= plat['y'] and player['y'] + 40 - player['vy'] < plat['y']):
+        # Check if player is above platform and falling
+        if (player['x'] + 40 > plat['x'] and 
+            player['x'] < plat['x'] + plat['width'] and
+            player['y'] + 40 >= plat['y'] and 
+            player['y'] + 40 - player['vy'] < plat['y']):
+            
             player['y'] = plat['y'] - 40
             player['vy'] = 0
             player['on_ground'] = True
-    # Key collection
+            break
+    
+    # Key collection with better collision
     key = state['key']
-    if not key['collected'] and abs(player['x'] - key['x']) < 40 and abs(player['y'] - key['y']) < 40:
+    if not key['collected'] and abs(player['x'] - key['x']) < 30 and abs(player['y'] - key['y']) < 30:
         key['collected'] = True
+        key['collectedBy'] = request.sid  # Track who collected it
         state['key_collected'] = True
         state['door']['open'] = True
         state['door_open'] = True
-    # Door check
+    
+    # Door check with better collision
     door = state['door']
-    if door['open'] and abs(player['x'] - door['x']) < 40 and abs(player['y'] - door['y']) < 60:
+    if door['open'] and abs(player['x'] - door['x']) < 30 and abs(player['y'] - door['y']) < 60:
         state['at_door'].add(request.sid)
     else:
         state['at_door'].discard(request.sid)
+    
     # Win check
     if door['open'] and len(state['at_door']) == len(state['players']) and len(state['players']) > 0:
         emit('win', {}, room=room)
-        # Reset game state for replay
+        # Reset game state for replay with new level
         platforms = generate_platforms()
         key_plat = get_random_platform(platforms)
         door_plat = get_random_platform(platforms)
-        state['key'] = {'x': key_plat['x'] + key_plat['width']//2 - 15, 'y': key_plat['y'] - 30, 'collected': False}
+        state['key'] = {'x': key_plat['x'] + key_plat['width']//2 - 15, 'y': key_plat['y'] - 30, 'collected': False, 'collectedBy': None}
         state['key_collected'] = False
         state['door'] = {'x': door_plat['x'] + door_plat['width']//2 - 20, 'y': door_plat['y'] - 60, 'open': False}
         state['door_open'] = False
         state['at_door'] = set()
         state['platforms'] = platforms
+    
     send_game_state(room)
 
 @socketio.on('disconnect')
