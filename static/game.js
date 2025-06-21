@@ -28,87 +28,80 @@ const playerSprites = {
 };
 
 function drawPlayer(player, isMe = false) {
-    const spriteSize = 32;
-    const scale = 1.5;
-    
-    // Determine animation state
-    let animState = 'idle';
-    if (!player.on_ground) animState = 'jump';
-    else if (Math.abs(player.vx) > 0.1) animState = 'walk';
-    
-    const anim = playerSprites[animState];
-    const frame = Math.floor(gameTime * anim.speed) % anim.frames;
-    
-    // Draw player body with better graphics
+    // --- Accurate Visuals Update ---
+    // Draw player body as a more accurate cat-like character
     ctx.save();
     ctx.translate(player.x + 20, player.y + 20);
     
     // Flip sprite based on direction
-    if (player.vx < 0) ctx.scale(-1, 1);
+    if (player.vx < 0 && !player.facingLeft) {
+        player.facingLeft = true;
+    } else if (player.vx > 0 && player.facingLeft) {
+        player.facingLeft = false;
+    }
+    if (player.facingLeft) {
+        ctx.scale(-1, 1);
+    }
     
-    // Draw shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.fillRect(-15, 15, 30, 8);
-    
-    // Draw body
+    // Body
     ctx.fillStyle = player.color;
-    ctx.fillRect(-12, -12, 24, 24);
+    ctx.beginPath();
+    ctx.arc(0, 0, 18, 0, Math.PI * 2);
+    ctx.fill();
     
-    // Draw eyes
+    // Ears
+    ctx.beginPath();
+    ctx.moveTo(-18, -15);
+    ctx.lineTo(-10, -25);
+    ctx.lineTo(-2, -15);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(18, -15);
+    ctx.lineTo(10, -25);
+    ctx.lineTo(2, -15);
+    ctx.fill();
+    
+    // Eyes
     ctx.fillStyle = '#fff';
-    ctx.fillRect(-8, -8, 4, 4);
-    ctx.fillRect(4, -8, 4, 4);
+    ctx.beginPath();
+    ctx.arc(-7, -5, 4, 0, Math.PI*2);
+    ctx.arc(7, -5, 4, 0, Math.PI*2);
+    ctx.fill();
+    
+    // Pupils
     ctx.fillStyle = '#000';
-    ctx.fillRect(-6, -6, 2, 2);
-    ctx.fillRect(6, -6, 2, 2);
+    ctx.beginPath();
+    ctx.arc(-7, -5, 2, 0, Math.PI*2);
+    ctx.arc(7, -5, 2, 0, Math.PI*2);
+    ctx.fill();
     
-    // Draw mouth
-    if (animState === 'walk') {
-        ctx.fillStyle = '#000';
-        ctx.fillRect(-4, 2, 8, 2);
-    }
-    
-    // Highlight for current player
-    if (isMe) {
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(-15, -15, 30, 30);
-    }
-    
+    // Feet (subtle)
+    ctx.fillStyle = player.color;
+    ctx.globalAlpha = 0.8;
+    ctx.fillRect(-12, 15, 8, 5);
+    ctx.fillRect(4, 15, 8, 5);
+    ctx.globalAlpha = 1.0;
+
     ctx.restore();
     
     // Draw nickname
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(player.nickname, player.x + 20, player.y - 10);
+    ctx.fillText(player.nickname, player.x + 20, player.y - 15);
     
     // Draw key indicator
     if (key && key.collected && key.collectedBy === player.sid) {
         ctx.fillStyle = '#FFD700';
-        ctx.fillRect(player.x + 25, player.y - 5, 8, 8);
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText('🔑', player.x + 20, player.y - 35);
     }
 }
 
 function drawPlatform(platform) {
-    // Draw platform with gradient and border
-    const gradient = ctx.createLinearGradient(platform.x, platform.y, platform.x, platform.y + platform.height);
-    gradient.addColorStop(0, '#666');
-    gradient.addColorStop(1, '#444');
-    
-    ctx.fillStyle = gradient;
+    // --- Minimalist Platform Design ---
+    ctx.fillStyle = '#2c3e50'; // Dark, solid color
     ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-    
-    // Draw border
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
-    
-    // Draw platform texture
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    for (let i = 0; i < platform.width; i += 20) {
-        ctx.fillRect(platform.x + i, platform.y + 5, 15, 2);
-    }
 }
 
 function drawKey() {
@@ -200,23 +193,9 @@ function drawParticles() {
 function drawGame() {
     gameTime += 1;
     
-    // Clear with gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-    gradient.addColorStop(0, '#87CEEB');
-    gradient.addColorStop(1, '#98FB98');
-    ctx.fillStyle = gradient;
+    // --- Minimalist Background ---
+    ctx.fillStyle = '#d0f4f7'; // Light blue sky
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw clouds
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    for (let i = 0; i < 3; i++) {
-        const x = (gameTime * 0.1 + i * 300) % (canvas.width + 100) - 50;
-        ctx.beginPath();
-        ctx.arc(x, 50 + i * 30, 30, 0, Math.PI * 2);
-        ctx.arc(x + 25, 50 + i * 30, 25, 0, Math.PI * 2);
-        ctx.arc(x + 50, 50 + i * 30, 20, 0, Math.PI * 2);
-        ctx.fill();
-    }
     
     // Draw platforms
     platforms.forEach(drawPlatform);
