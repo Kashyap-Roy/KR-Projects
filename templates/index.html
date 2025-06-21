@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pico Park Clone</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div id="lobby">
+        <h1>Pico Park Clone</h1>
+        <input type="text" id="nickname" placeholder="Enter your nickname">
+        <input type="text" id="room" placeholder="Room name (leave blank for random)">
+        <button id="joinBtn" type="button">Join Game</button>
+    </div>
+    <div id="game" style="display:none;">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="voice-controls">
+            <button id="muteBtn" type="button">Mute</button>
+            <span id="voiceStatus">Voice: On</span>
+        </div>
+    </div>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="/static/game.js"></script>
+    <script src="/static/voice.js"></script>
+</body>
+</html> 

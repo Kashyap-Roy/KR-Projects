@@ -1,0 +1,7 @@
+body { font-family: Arial, sans-serif; background: #222; color: #fff; margin: 0; padding: 0; }
+#lobby { text-align: center; margin-top: 100px; }
+#game { text-align: center; }
+#gameCanvas { background: #333; border: 2px solid #fff; margin-top: 20px; }
+#voice-controls { margin-top: 10px; }
+button { padding: 10px 20px; font-size: 16px; }
+input { padding: 8px; font-size: 16px; margin: 5px; } 
