@@ -2,6 +2,8 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, join_room, leave_room, emit
 import os
 import random
+import eventlet
+import eventlet.wsgi
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 socketio = SocketIO(app)
